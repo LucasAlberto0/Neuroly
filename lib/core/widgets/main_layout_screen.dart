@@ -3,6 +3,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/stats/presentation/screens/stats_screen.dart';
 import '../../features/modules/presentation/screens/modules_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/ranking/presentation/screens/ranking_screen.dart';
 import '../theme/app_colors.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -20,6 +21,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     const HomeScreen(),
     const StatsScreen(),
     const ModulesScreen(),
+    const RankingScreen(),
     const ProfileScreen(),
   ];
 
@@ -62,6 +64,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           BottomNavigationBarItem(icon: Icon(LucideIcons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(LucideIcons.barChart2), label: 'Stats'),
           BottomNavigationBarItem(icon: Icon(LucideIcons.library), label: 'Módulos'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.trophy), label: 'Ranking'),
           BottomNavigationBarItem(icon: Icon(LucideIcons.user), label: 'Perfil'),
         ],
       ),
