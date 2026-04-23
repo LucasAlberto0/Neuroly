@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class AttentionGameScreen extends StatefulWidget {
   const AttentionGameScreen({super.key});
@@ -21,6 +22,7 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
   Timer? _gameTimer;
   Timer? _colorTimer;
   int _timeLeft = 30;
+  bool _isWrongTap = false;
 
   void _startGame() {
     setState(() {
@@ -66,6 +68,10 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
     } else {
       setState(() {
         _score -= 5;
+        _isWrongTap = true;
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) setState(() => _isWrongTap = false);
       });
     }
   }
@@ -124,28 +130,31 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
                 ),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: _onTap,
-                child: GlassContainer(
-                  padding: const EdgeInsets.all(48),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentColor,
-                      boxShadow: [
-                        if (_currentColor != AppColors.surfaceBright)
-                          BoxShadow(
-                            color: _currentColor.withOpacity(0.5),
-                            blurRadius: 30,
-                            spreadRadius: 10,
-                          )
-                      ],
-                    ),
+              Center(
+                child: GestureDetector(
+                  onTap: _onTap,
+                  child: GlassContainer(
+                    padding: const EdgeInsets.all(48),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentColor,
+                        boxShadow: [
+                          if (_currentColor != AppColors.surfaceBright)
+                            BoxShadow(
+                              color: _currentColor.withOpacity(0.5),
+                              blurRadius: 30,
+                              spreadRadius: 10,
+                            )
+                        ],
+                      ),
+                    ).animate(target: _currentColor != AppColors.surfaceBright ? 1 : 0)
+                     .scale(duration: 200.ms, curve: Curves.easeOutBack),
                   ),
-                ),
+                ).animate(target: _isWrongTap ? 1 : 0).shake(hz: 8, curve: Curves.easeInOutCubic, duration: 300.ms),
               ),
               const Spacer(),
               if (!_isPlaying)

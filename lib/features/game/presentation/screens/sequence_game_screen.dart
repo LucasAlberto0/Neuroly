@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class SequenceGameScreen extends StatefulWidget {
@@ -169,8 +170,8 @@ class _SequenceGameScreenState extends State<SequenceGameScreen> {
                           size: isActive ? 48 : 40,
                           color: isActive ? AppColors.textHigh : AppColors.primary,
                         ),
-                      ),
-                    );
+                      ).animate(target: isActive ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 150.ms),
+                    ).animate().fade(delay: (100 * index).ms).slideY(begin: 0.2);
                   },
                 ),
               ),

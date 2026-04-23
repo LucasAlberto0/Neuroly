@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -28,7 +29,7 @@ class HomeScreen extends StatelessWidget {
               Text(
                 'Seu nível cognitivo hoje',
                 style: Theme.of(context).textTheme.titleLarge,
-              ),
+              ).animate().fade(duration: 500.ms).slideY(begin: -0.2, end: 0),
               const SizedBox(height: 48),
               
               // Giant Circular Progress for Cognitive Level
@@ -90,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                     _buildMissionItem(context, 'Evoluir seu cérebro em 5%', 'Progresso atual: 2%', false),
                   ],
                 ),
-              ),
+              ).animate().fade(delay: 400.ms).slideX(begin: 0.1, end: 0),
               
               const SizedBox(height: 32),
               
@@ -125,7 +126,7 @@ class HomeScreen extends StatelessWidget {
                 color: AppColors.primary,
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
-              ),
+              ).animate().scaleX(begin: 0, end: 1, duration: 800.ms, curve: Curves.easeOutQuad, alignment: Alignment.centerLeft),
               
               const SizedBox(height: 48),
               
@@ -196,7 +197,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
+              ).animate().fade(delay: 600.ms).slideY(begin: 0.2, end: 0),
             ],
           ),
         ),

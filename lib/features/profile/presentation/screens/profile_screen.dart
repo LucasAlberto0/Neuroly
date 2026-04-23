@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -59,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ],
-              ),
+              ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
               const SizedBox(height: 24),
               
               Text(
@@ -96,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildTextField('E-mail', 'lucas@neuroly.com', LucideIcons.mail),
                   ],
                 ),
-              ),
+              ).animate().fade(delay: 300.ms).slideX(begin: -0.1),
               
               const SizedBox(height: 32),
               
@@ -121,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildSwitchItem('Modo Escuro (Cyber-Core)', _darkTheme, (val) => setState(() => _darkTheme = val)),
                   ],
                 ),
-              ),
+              ).animate().fade(delay: 400.ms).slideX(begin: -0.1),
               
               const SizedBox(height: 48),
               
@@ -140,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
-              ),
+              ).animate().fade(delay: 500.ms).slideY(begin: 0.1),
               const SizedBox(height: 24),
             ],
           ),

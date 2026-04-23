@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -71,7 +72,7 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
+              ).animate().fade(duration: 600.ms).scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
               const SizedBox(height: 40),
 
               // Histórico de Sessões
@@ -82,11 +83,14 @@ class StatsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSessionItem(context, 'Memória (Cartões)', 'Hoje, 14:30', '+45 pts', AppColors.secondary, LucideIcons.brain),
+              _buildSessionItem(context, 'Memória (Cartões)', 'Hoje, 14:30', '+45 pts', AppColors.secondary, LucideIcons.brain)
+                  .animate().fade(delay: 200.ms).slideX(begin: 0.1),
               const SizedBox(height: 12),
-              _buildSessionItem(context, 'Atenção Concentrada', 'Ontem, 09:15', '+30 pts', AppColors.cyan, LucideIcons.target),
+              _buildSessionItem(context, 'Atenção Concentrada', 'Ontem, 09:15', '+30 pts', AppColors.cyan, LucideIcons.target)
+                  .animate().fade(delay: 300.ms).slideX(begin: 0.1),
               const SizedBox(height: 12),
-              _buildSessionItem(context, 'Sequência Lógica', 'Ontem, 08:45', '+15 pts', AppColors.primary, LucideIcons.grid),
+              _buildSessionItem(context, 'Sequência Lógica', 'Ontem, 08:45', '+15 pts', AppColors.primary, LucideIcons.grid)
+                  .animate().fade(delay: 400.ms).slideX(begin: 0.1),
             ],
           ),
         ),

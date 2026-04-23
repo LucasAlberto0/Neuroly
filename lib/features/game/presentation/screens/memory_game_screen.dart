@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class MemoryGameScreen extends StatefulWidget {
@@ -154,15 +155,19 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _matched[index] ? AppColors.secondary : AppColors.outline,
+                            width: _matched[index] ? 2 : 1,
                           ),
+                          boxShadow: _matched[index] 
+                              ? [BoxShadow(color: AppColors.secondary.withOpacity(0.5), blurRadius: 10)] 
+                              : [],
                         ),
                         child: Center(
                           child: isFlipped
                               ? Icon(_cards[index], color: _matched[index] ? AppColors.secondary : AppColors.primary, size: 32)
                               : const Icon(LucideIcons.brain, color: AppColors.textMedium, size: 24),
                         ),
-                      ),
-                    );
+                      ).animate(target: _matched[index] ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 200.ms),
+                    ).animate().fade(delay: (30 * index).ms).slideY(begin: 0.1);
                   },
                 ),
               ),
@@ -176,7 +181,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
                       child: const Text('JOGAR NOVAMENTE'),
                     ),
                   ],
-                ),
+                ).animate().fade().scale(curve: Curves.easeOutBack),
             ],
           ),
         ),

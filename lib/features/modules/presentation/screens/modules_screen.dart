@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -36,7 +37,7 @@ class ModulesScreen extends StatelessWidget {
                 color: AppColors.cyan,
                 icon: LucideIcons.target,
                 route: '/game_attention',
-              ),
+              ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
               const SizedBox(height: 16),
               _buildModuleCard(
                 context,
@@ -46,7 +47,7 @@ class ModulesScreen extends StatelessWidget {
                 color: AppColors.secondary,
                 icon: LucideIcons.brain,
                 route: '/game_memory',
-              ),
+              ).animate().fade(delay: 200.ms).slideY(begin: 0.1),
               const SizedBox(height: 16),
               _buildModuleCard(
                 context,
@@ -56,7 +57,7 @@ class ModulesScreen extends StatelessWidget {
                 color: AppColors.primary,
                 icon: LucideIcons.grid,
                 route: '/game_sequence',
-              ),
+              ).animate().fade(delay: 300.ms).slideY(begin: 0.1),
             ],
           ),
         ),
