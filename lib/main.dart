@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/game/presentation/screens/sequence_game_screen.dart';
 import 'core/widgets/main_layout_screen.dart';
@@ -29,6 +30,9 @@ class NeurolyApp extends StatelessWidget {
             break;
           case '/login':
             page = const LoginScreen();
+            break;
+          case '/register':
+            page = const RegisterScreen();
             break;
           case '/home':
             page = const MainLayoutScreen();

@@ -107,7 +107,9 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/register');
+                      },
                       child: Text(
                         'Não possui acesso? Criar conta',
                         style: TextStyle(color: AppColors.textMedium),
