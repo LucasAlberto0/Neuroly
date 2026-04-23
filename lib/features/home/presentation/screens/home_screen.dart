@@ -201,18 +201,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textMedium,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(LucideIcons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.barChart2), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.library), label: 'Módulos'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.user), label: 'Perfil'),
-        ],
-      ),
     );
   }
 
