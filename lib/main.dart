@@ -7,6 +7,10 @@ import 'features/game/presentation/screens/sequence_game_screen.dart';
 import 'core/widgets/main_layout_screen.dart';
 import 'features/game/presentation/screens/attention_game_screen.dart';
 import 'features/game/presentation/screens/memory_game_screen.dart';
+import 'features/game/presentation/screens/word_puzzle_game_screen.dart';
+import 'features/game/presentation/screens/stroop_game_screen.dart';
+import 'features/game/presentation/screens/math_game_screen.dart';
+import 'features/game/presentation/screens/nback_game_screen.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 
 void main() {
@@ -45,6 +49,18 @@ class NeurolyApp extends StatelessWidget {
             break;
           case '/game_memory':
             page = const MemoryGameScreen();
+            break;
+          case '/game_word_puzzle':
+            page = const WordPuzzleGameScreen();
+            break;
+          case '/game_stroop':
+            page = const StroopGameScreen();
+            break;
+          case '/game_math':
+            page = const MathGameScreen();
+            break;
+          case '/game_nback':
+            page = const NBackGameScreen();
             break;
           default:
             page = const OnboardingScreen();
