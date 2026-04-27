@@ -284,75 +284,84 @@ class ShrinkWrapGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate cell size to perfectly fit screen width minus padding
-        double cellSize = constraints.maxWidth / cols;
-        return Column(
-          children: List.generate(rows, (r) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(cols, (c) {
-                var cell = grid[r][c];
-                
-                if (cell.isBlack) {
-                  return SizedBox(width: cellSize, height: cellSize);
-                }
+        // Reduz a largura disponível para evitar qualquer overflow de ponto flutuante
+        final double availableWidth = constraints.maxWidth - 4;
+        final double cellSize = availableWidth / cols;
+        
+        return SizedBox(
+          width: availableWidth,
+          height: cellSize * rows,
+          child: GridView.builder(
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
+              childAspectRatio: 1,
+            ),
+            itemCount: rows * cols,
+            itemBuilder: (context, index) {
+              int r = index ~/ cols;
+              int c = index % cols;
+              var cell = grid[r][c];
+              
+              if (cell.isBlack) {
+                return const SizedBox.shrink();
+              }
 
-                bool isSelected = r == selectedRow && c == selectedCol;
-                bool isCorrect = isSuccess || (cell.currentValue.isNotEmpty && cell.currentValue == cell.expectedChar);
+              bool isSelected = r == selectedRow && c == selectedCol;
+              bool isCorrect = isSuccess || (cell.currentValue.isNotEmpty && cell.currentValue == cell.expectedChar);
 
-                return GestureDetector(
-                  onTap: () => onCellTap(r, c),
-                  child: Container(
-                    width: cellSize - 2, // -2 for margin
-                    height: cellSize - 2,
-                    margin: const EdgeInsets.all(1),
-                    decoration: BoxDecoration(
-                      color: isSelected 
-                          ? AppColors.primary.withOpacity(0.5) 
-                          : (isCorrect ? AppColors.secondary.withOpacity(0.3) : AppColors.surfaceBright),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : (isCorrect ? AppColors.secondary : AppColors.outline),
-                        width: isSelected ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
+              return GestureDetector(
+                onTap: () => onCellTap(r, c),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? AppColors.primary.withOpacity(0.5) 
+                        : (isCorrect ? AppColors.secondary.withOpacity(0.3) : AppColors.surfaceBright),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : (isCorrect ? AppColors.secondary : AppColors.outline),
+                      width: isSelected ? 2 : 1,
                     ),
-                    child: Stack(
-                      children: [
-                        if (cell.number > 0)
-                          Positioned(
-                            top: 1,
-                            left: 3,
-                            child: Text(
-                              cell.number.toString(),
-                              style: const TextStyle(fontSize: 8, color: AppColors.textMedium, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        Center(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Stack(
+                    children: [
+                      if (cell.number > 0)
+                        Positioned(
+                          top: 2,
+                          left: 4,
                           child: Text(
-                            cell.currentValue,
-                            style: TextStyle(
-                              fontSize: cellSize * 0.45,
-                              fontWeight: FontWeight.bold,
-                              color: isCorrect ? AppColors.secondary : Colors.white,
-                            ),
+                            cell.number.toString(),
+                            style: const TextStyle(fontSize: 8, color: AppColors.textMedium, fontWeight: FontWeight.bold),
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                  .animate()
-                  .scale(
-                    delay: ((r * cols + c) * 20).ms, 
-                    duration: 300.ms, 
-                    curve: Curves.easeOutBack
-                  )
-                  .fade(duration: 300.ms)
-                  .animate(target: isCorrect ? 1 : 0)
-                  .shimmer(duration: 500.ms, color: Colors.white24),
-                );
-              }),
-            );
-          }),
+                      Center(
+                        child: Text(
+                          cell.currentValue,
+                          style: TextStyle(
+                            fontSize: cellSize * 0.45,
+                            fontWeight: FontWeight.bold,
+                            color: isCorrect ? AppColors.secondary : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .scale(
+                  delay: ((r * cols + c) * 20).ms, 
+                  duration: 300.ms, 
+                  curve: Curves.easeOutBack
+                )
+                .fade(duration: 300.ms)
+                .animate(target: isCorrect ? 1 : 0)
+                .shimmer(duration: 500.ms, color: Colors.white24),
+              );
+            },
+          ),
         );
       }
     );
