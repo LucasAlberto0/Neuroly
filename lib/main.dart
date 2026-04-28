@@ -12,6 +12,7 @@ import 'features/game/presentation/screens/stroop_game_screen.dart';
 import 'features/game/presentation/screens/math_game_screen.dart';
 import 'features/game/presentation/screens/nback_game_screen.dart';
 import 'features/game/presentation/screens/crossword_game_screen.dart';
+import 'features/game/presentation/screens/zen_mode_screen.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 
 void main() {
@@ -65,6 +66,9 @@ class NeurolyApp extends StatelessWidget {
             break;
           case '/game_crossword':
             page = const CrosswordGameScreen();
+            break;
+          case '/zen_mode':
+            page = const ZenModeScreen();
             break;
           default:
             page = const OnboardingScreen();

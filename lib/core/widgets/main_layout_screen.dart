@@ -49,6 +49,15 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           child: _pages[_currentIndex],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/zen_mode');
+        },
+        backgroundColor: AppColors.cyan,
+        elevation: 8,
+        child: const Icon(LucideIcons.wind, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
