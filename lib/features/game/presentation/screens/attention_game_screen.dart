@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/widgets/animated_score_badge.dart';
 
 class AttentionGameScreen extends StatefulWidget {
   const AttentionGameScreen({super.key});
@@ -96,7 +97,10 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Atenção Concentrada'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('Atenção Concentrada'),
+        ),
         actions: [
           Center(
             child: Padding(
@@ -123,12 +127,7 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 16),
-              Text(
-                'Score: $_score',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppColors.secondary,
-                ),
-              ),
+              AnimatedScoreBadge(score: _score),
               const Spacer(),
               Center(
                 child: GestureDetector(

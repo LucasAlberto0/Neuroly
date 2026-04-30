@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/widgets/brain_progress_indicator.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -33,42 +34,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 48),
               
               // Giant Circular Progress for Cognitive Level
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: CircularProgressIndicator(
-                      value: 0.72,
-                      strokeWidth: 12,
-                      color: AppColors.secondary,
-                      backgroundColor: AppColors.secondary.withOpacity(0.1),
-                      strokeCap: StrokeCap.round,
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '72',
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: 72,
-                          color: Colors.white,
-                          fontFamily: 'Space Grotesk',
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Nível',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.textMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              const BrainProgressIndicator(percentage: 0.72),
               const SizedBox(height: 48),
 
               // Missões do dia

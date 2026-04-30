@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/animated_score_badge.dart';
 
 class StroopGameScreen extends StatefulWidget {
   const StroopGameScreen({super.key});
@@ -73,17 +74,17 @@ class _StroopGameScreenState extends State<StroopGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Conflito de Cores'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('Conflito de Cores'),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                'Score: $_score',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.cyan, fontSize: 16),
-              ),
+              child: AnimatedScoreBadge(score: _score),
             ),
           )
         ],

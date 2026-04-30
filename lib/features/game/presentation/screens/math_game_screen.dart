@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/animated_score_badge.dart';
 
 class MathGameScreen extends StatefulWidget {
   const MathGameScreen({super.key});
@@ -61,17 +62,17 @@ class _MathGameScreenState extends State<MathGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cálculo Rápido'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('Cálculo Rápido'),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                'Score: $_score',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.cyan, fontSize: 16),
-              ),
+              child: AnimatedScoreBadge(score: _score),
             ),
           )
         ],
@@ -89,7 +90,9 @@ class _MathGameScreenState extends State<MathGameScreen> {
             ),
             const SizedBox(height: 64),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -98,13 +101,17 @@ class _MathGameScreenState extends State<MathGameScreen> {
                   if (_isWrong) BoxShadow(color: Colors.red.withOpacity(0.5), blurRadius: 20)
                 ]
               ),
-              child: Text(
-                _equation,
-                style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textHigh,
-                  letterSpacing: 4,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _equation,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textHigh,
+                    letterSpacing: 4,
+                  ),
                 ),
               ).animate(key: ValueKey(_equation)).scale(duration: 200.ms),
             ).animate(target: _isWrong ? 1 : 0).shake(),

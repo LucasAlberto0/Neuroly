@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/widgets/animated_score_badge.dart';
 
 class WordPuzzleGameScreen extends StatefulWidget {
   const WordPuzzleGameScreen({super.key});
@@ -94,10 +95,7 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                'Score: $_score',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.cyan, fontSize: 16),
-              ),
+              child: AnimatedScoreBadge(score: _score),
             ),
           )
         ],

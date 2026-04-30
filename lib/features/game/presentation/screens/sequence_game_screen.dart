@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/widgets/animated_score_badge.dart';
 
 class SequenceGameScreen extends StatefulWidget {
   const SequenceGameScreen({super.key});
@@ -110,42 +111,41 @@ class _SequenceGameScreenState extends State<SequenceGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Combine a Sequência'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('Combine a Sequência'),
+        ),
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                '$_score pts',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: AnimatedScoreBadge(score: _score),
             ),
           )
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Text(
-                'Toque nas formas na ordem em que apareceram',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const Spacer(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  'Toque nas formas na ordem em que apareceram',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
               GlassContainer(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(16),
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 32,
-                    crossAxisSpacing: 32,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.2,
                   ),
                   itemCount: _shapes.length,
                   itemBuilder: (context, index) {
@@ -175,14 +175,14 @@ class _SequenceGameScreenState extends State<SequenceGameScreen> {
                   },
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 16),
               Text(
                 _message,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: _message.contains('Fim') ? Colors.red : AppColors.secondary,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               if (!_isPlaying)
                 ElevatedButton(
                   onPressed: _startGame,
@@ -191,6 +191,7 @@ class _SequenceGameScreenState extends State<SequenceGameScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
