@@ -15,7 +15,11 @@ import 'features/game/presentation/screens/crossword_game_screen.dart';
 import 'features/game/presentation/screens/zen_mode_screen.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 
-void main() {
+import 'core/services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   runApp(const NeurolyApp());
 }
 

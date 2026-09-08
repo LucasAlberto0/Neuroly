@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/widgets/brain_progress_indicator.dart';
+import '../../../../core/services/notification_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,17 @@ class HomeScreen extends StatelessWidget {
           height: 32,
           errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.white),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.bell, color: AppColors.textMedium),
+            onPressed: () {
+              NotificationService().scheduleVideoNotification();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notificação agendada para 30s! Feche o app e simule a rede social.')),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
