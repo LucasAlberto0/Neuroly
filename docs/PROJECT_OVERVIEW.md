@@ -44,16 +44,16 @@ A navegação não utiliza o padrão seco do Flutter. Foi configurado um `onGene
 O Neuroly adota um **Dark Theme Premium**. As cores são mapeadas de forma semântica no arquivo `app_colors.dart`.
 
 ### Paleta de Cores
-* **Background (`#13121B`):** Fundo escuro profundo.
-* **Surface (`#1F1F28`):** Fundo principal de contêineres e cartões.
-* **Surface Bright (`#393842`):** Realce sobre o surface (útil para hover e destaques de input).
-* **Primary (`#4F46E5`):** Roxo Vibrante (Cor da marca, foco, botões primários).
-* **Primary Dim (`#C3C0FF`):** Roxo Suave (Destaques secundários).
-* **Secondary (`#22C55E`):** Verde Evolução (Sucesso, ganho de pontos, vitórias).
-* **Cyan (`#06B6D4`):** Ciano Tech (Acertos rápidos, highlights de pontuação).
-* **Text High (`#F8FAFC`):** Texto primário, títulos em branco/cinza super claro.
-* **Text Medium (`#C7C4D8`):** Texto de suporte, legendas, placeholders.
-* **Outline (`#464555`):** Bordas de contêineres e divisórias (Efeito Glass).
+* **Background (`#0F0930`):** Fundo Principal (Deep Night/Space). Usar no fundo de todas as telas.
+* **Surface (`#28187B`):** Containers & Cards (usar na base dos cards com transparência para o efeito Glassmorphism).
+* **Surface Bright (`#4C4FA2`):** Realce sobre o surface (útil para hover e destaques de input).
+* **Primary (`#9048D6`):** Roxo Identidade (Primary Brand). Usar em destaques de marca, barras de progresso principal e avatares.
+* **Primary Dim (`#B37EE6`):** Roxo Suave (Destaques secundários).
+* **Secondary (`#1EA9FE`):** Azul Elétrico (High-Contrast Accent). Usar para chamadas de ação (CTAs), botões de jogo, contadores de "Neuro-créditos" e picos do gráfico.
+* **Cyan (`#1EA9FE`):** Ciano Tech (Acertos rápidos, highlights de pontuação).
+* **Text High (`#FFFFFF`):** Texto & Ícones (Usar para máxima legibilidade sobre o fundo escuro).
+* **Text Medium (`#B0B3DE`):** Texto de suporte, legendas, placeholders.
+* **Outline (`#4C4FA2`):** Elementos Secundários & Bordas (usar em bordas sutis, botões inativos e divisores de seção).
 
 ### Estilo
 * **Glassmorphism:** Utilizado em menus e cards, criado combinando bordas translúcidas (`AppColors.outline`), fundos semi-transparentes ou gradientes sutis (via `GlassContainer`), emulando vidro escuro moderno.

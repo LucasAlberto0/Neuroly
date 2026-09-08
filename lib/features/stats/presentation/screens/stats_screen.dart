@@ -3,9 +3,45 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../widgets/linkedin_certificate_modal.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
+
+  @override
+  State<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _chartController;
+  bool _certificateShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _chartController = AnimationController(vsync: this, duration: const Duration(seconds: 3));
+    _chartController.forward();
+    _chartController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && !_certificateShown) {
+        _certificateShown = true;
+        _showCertificate();
+      }
+    });
+  }
+
+  void _showCertificate() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const LinkedinCertificateModal(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _chartController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +58,62 @@ class StatsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Neuroly Score (NEW)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Neuroly Score',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Icon(LucideIcons.trendingUp, color: AppColors.secondary, size: 20),
+                ],
+              ),
+              const SizedBox(height: 16),
+              GlassContainer(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '985',
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 6.0),
+                          child: Text(
+                            '+125 pts na semana',
+                            style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 120,
+                      width: double.infinity,
+                      child: AnimatedBuilder(
+                        animation: _chartController,
+                        builder: (context, child) {
+                          return CustomPaint(
+                            painter: _ChartPainter(_chartController.value),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fade(duration: 600.ms).slideY(begin: 0.1),
+              const SizedBox(height: 40),
+
               // Monitoramento de uso
               Text(
                 'Monitoramento de Uso',
@@ -138,4 +230,85 @@ class StatsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ChartPainter extends CustomPainter {
+  final double progress;
+
+  _ChartPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.secondary
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [AppColors.secondary.withOpacity(0.4), AppColors.secondary.withOpacity(0.0)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final fillPath = Path();
+
+    // Data points (simulating an upward trend)
+    final points = [
+      Offset(0, size.height * 0.8),
+      Offset(size.width * 0.2, size.height * 0.6),
+      Offset(size.width * 0.4, size.height * 0.7),
+      Offset(size.width * 0.6, size.height * 0.3),
+      Offset(size.width * 0.8, size.height * 0.4),
+      Offset(size.width, size.height * 0.1),
+    ];
+
+    if (progress == 0) return;
+
+    // Draw up to the current progress
+    final totalPoints = points.length;
+    final currentPointIndex = (progress * (totalPoints - 1)).floor();
+    final pointProgress = (progress * (totalPoints - 1)) - currentPointIndex;
+
+    path.moveTo(points[0].dx, size.height);
+    path.lineTo(points[0].dx, points[0].dy);
+    fillPath.moveTo(points[0].dx, size.height);
+    fillPath.lineTo(points[0].dx, points[0].dy);
+
+    for (int i = 0; i < currentPointIndex; i++) {
+      path.lineTo(points[i + 1].dx, points[i + 1].dy);
+      fillPath.lineTo(points[i + 1].dx, points[i + 1].dy);
+    }
+
+    if (currentPointIndex < totalPoints - 1) {
+      final p1 = points[currentPointIndex];
+      final p2 = points[currentPointIndex + 1];
+      final currentX = p1.dx + (p2.dx - p1.dx) * pointProgress;
+      final currentY = p1.dy + (p2.dy - p1.dy) * pointProgress;
+      
+      path.lineTo(currentX, currentY);
+      fillPath.lineTo(currentX, currentY);
+      fillPath.lineTo(currentX, size.height);
+    } else {
+      fillPath.lineTo(points.last.dx, size.height);
+    }
+
+    fillPath.close();
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+
+    // Draw point dots
+    final dotPaint = Paint()..color = Colors.white;
+    for (int i = 0; i <= currentPointIndex; i++) {
+      canvas.drawCircle(points[i], 6, paint);
+      canvas.drawCircle(points[i], 3, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ChartPainter oldDelegate) => oldDelegate.progress != progress;
 }
