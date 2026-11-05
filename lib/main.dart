@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
-import 'features/home/presentation/screens/home_screen.dart';
 import 'features/game/presentation/screens/sequence_game_screen.dart';
 import 'core/widgets/main_layout_screen.dart';
 import 'features/game/presentation/screens/attention_game_screen.dart';
@@ -16,9 +15,11 @@ import 'features/game/presentation/screens/zen_mode_screen.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 
 import 'core/services/notification_service.dart';
+import 'core/services/neuroly_api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NeurolyApiClient().init();
   await NotificationService().init();
   runApp(const NeurolyApp());
 }
