@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:confetti/confetti.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 
@@ -15,6 +16,12 @@ class LinkedinCertificateModal extends StatefulWidget {
 class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
   late ConfettiController _confettiController;
   bool _showingPreview = false;
+
+  String get _userFirstName {
+    final fullName = NeurolyApiClient().currentUser?.name.trim() ?? '';
+    if (fullName.isEmpty) return 'Lucas';
+    return fullName.split(' ').first;
+  }
 
   @override
   void initState() {
@@ -54,6 +61,7 @@ class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
   }
 
   Widget _buildCertificate() {
+    final firstName = _userFirstName;
     return GlassContainer(
       key: const ValueKey('cert'),
       padding: const EdgeInsets.all(24),
@@ -66,7 +74,7 @@ class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
               .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1), duration: 1.seconds),
           const SizedBox(height: 16),
           Text(
-            'Parabéns, Lucas!',
+            'Parabéns, $firstName!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.textHigh,
@@ -119,6 +127,7 @@ class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
   }
 
   Widget _buildPreview() {
+    final firstName = _userFirstName;
     return GlassContainer(
       key: const ValueKey('preview'),
       padding: const EdgeInsets.all(24),
@@ -136,8 +145,8 @@ class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Lucas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                  Text('Agora mesmo • 🌎', style: TextStyle(color: AppColors.textMedium, fontSize: 12)),
+                  Text(firstName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text('Agora mesmo • 🌎', style: TextStyle(color: AppColors.textMedium, fontSize: 12)),
                 ],
               ),
             ],
