@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/animated_score_badge.dart';
 
@@ -17,10 +18,13 @@ class _MathGameScreenState extends State<MathGameScreen> {
   bool _isActuallyTrue = false;
   int _score = 0;
   bool _isWrong = false;
+  late DateTime _sessionStartTime;
+  bool _sessionSubmitted = false;
 
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     _nextRound();
   }
 
@@ -30,7 +34,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
     int result = a * b;
 
     _isActuallyTrue = _rand.nextBool();
-    
+
     if (!_isActuallyTrue) {
       // Offset the result by a small amount
       int offset = _rand.nextBool() ? (_rand.nextInt(3) + 1) : -(_rand.nextInt(3) + 1);
@@ -39,6 +43,17 @@ class _MathGameScreenState extends State<MathGameScreen> {
 
     _equation = "$a x $b = $result";
     _isWrong = false;
+  }
+
+  void _submitSessionIfNeeded() {
+    if (_sessionSubmitted || _score <= 0) return;
+    _sessionSubmitted = true;
+    final elapsed = DateTime.now().difference(_sessionStartTime).inSeconds;
+    NeurolyApiClient().submitGameSession(
+      moduleId: 'math',
+      score: max(0, _score),
+      durationSeconds: max(5, elapsed),
+    );
   }
 
   void _checkAnswer(bool userSaidTrue) {
@@ -59,71 +74,85 @@ class _MathGameScreenState extends State<MathGameScreen> {
   }
 
   @override
+  void dispose() {
+    _submitSessionIfNeeded();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text('Cálculo Rápido'),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AnimatedScoreBadge(score: _score),
-            ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                'Verdadeiro ou Falso?',
-                style: TextStyle(color: AppColors.textMedium, fontSize: 18),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _submitSessionIfNeeded();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Cálculo Rápido'),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: AnimatedScoreBadge(score: _score),
               ),
-            ),
-            const SizedBox(height: 64),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _isWrong ? Colors.red : AppColors.outline, width: 2),
-                boxShadow: [
-                  if (_isWrong) BoxShadow(color: Colors.red.withOpacity(0.5), blurRadius: 20)
-                ]
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  _equation,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textHigh,
-                    letterSpacing: 4,
-                  ),
-                ),
-              ).animate(key: ValueKey(_equation)).scale(duration: 200.ms),
-            ).animate(target: _isWrong ? 1 : 0).shake(),
-            const SizedBox(height: 80),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildAnswerButton('Falso', Colors.redAccent, false),
-                _buildAnswerButton('Verdadeiro', AppColors.secondary, true),
-              ],
-            ),
+            )
           ],
+        ),
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Verdadeiro ou Falso?',
+                  style: TextStyle(color: AppColors.textMedium, fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 64),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _isWrong ? Colors.red : AppColors.outline,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    if (_isWrong) BoxShadow(color: Colors.red.withOpacity(0.5), blurRadius: 20)
+                  ],
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _equation,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textHigh,
+                      letterSpacing: 4,
+                    ),
+                  ),
+                ).animate(key: ValueKey(_equation)).scale(duration: 200.ms),
+              ).animate(target: _isWrong ? 1 : 0).shake(),
+              const SizedBox(height: 80),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildAnswerButton('Falso', Colors.redAccent, false),
+                  _buildAnswerButton('Verdadeiro', AppColors.secondary, true),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

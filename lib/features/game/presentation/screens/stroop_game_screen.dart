@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/animated_score_badge.dart';
 
@@ -25,10 +26,13 @@ class _StroopGameScreenState extends State<StroopGameScreen> {
   late List<String> _options;
   int _score = 0;
   bool _isWrong = false;
+  late DateTime _sessionStartTime;
+  bool _sessionSubmitted = false;
 
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     _nextRound();
   }
 
@@ -38,7 +42,7 @@ class _StroopGameScreenState extends State<StroopGameScreen> {
     _displayWord = keys[rand.nextInt(keys.length)];
     // Sometimes word and color match, sometimes they don't
     _displayColor = _colorData[keys[rand.nextInt(keys.length)]]!;
-    
+
     // Generate 3 random options including the correct one
     final correctColorName = _colorData.entries.firstWhere((e) => e.value == _displayColor).key;
     _options = [correctColorName];
@@ -50,6 +54,17 @@ class _StroopGameScreenState extends State<StroopGameScreen> {
     }
     _options.shuffle();
     _isWrong = false;
+  }
+
+  void _submitSessionIfNeeded() {
+    if (_sessionSubmitted || _score <= 0) return;
+    _sessionSubmitted = true;
+    final elapsed = DateTime.now().difference(_sessionStartTime).inSeconds;
+    NeurolyApiClient().submitGameSession(
+      moduleId: 'stroop',
+      score: max(0, _score),
+      durationSeconds: max(5, elapsed),
+    );
   }
 
   void _checkAnswer(String selectedColorName) {
@@ -71,68 +86,86 @@ class _StroopGameScreenState extends State<StroopGameScreen> {
   }
 
   @override
+  void dispose() {
+    _submitSessionIfNeeded();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text('Conflito de Cores'),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AnimatedScoreBadge(score: _score),
-            ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                'Selecione a COR que a palavra está pintada, não o que está escrito!',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMedium),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _submitSessionIfNeeded();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Conflito de Cores'),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: AnimatedScoreBadge(score: _score),
               ),
-            ),
-            const SizedBox(height: 64),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _isWrong ? Colors.red : AppColors.outline, width: 2),
-              ),
-              child: Text(
-                _displayWord,
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: _displayColor,
-                ),
-              ).animate(key: ValueKey(_displayWord + _displayColor.toString())).scale(duration: 200.ms),
-            ).animate(target: _isWrong ? 1 : 0).shake(),
-            const SizedBox(height: 64),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: _options.map((option) {
-                return ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.surfaceBright,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  ),
-                  onPressed: () => _checkAnswer(option),
-                  child: Text(option, style: const TextStyle(color: AppColors.textHigh)),
-                ).animate().fade().slideY();
-              }).toList(),
-            ),
+            )
           ],
+        ),
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'Selecione a COR que a palavra está pintada, não o que está escrito!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textMedium),
+                ),
+              ),
+              const SizedBox(height: 64),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _isWrong ? Colors.red : AppColors.outline,
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  _displayWord,
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: _displayColor,
+                  ),
+                )
+                    .animate(key: ValueKey(_displayWord + _displayColor.toString()))
+                    .scale(duration: 200.ms),
+              ).animate(target: _isWrong ? 1 : 0).shake(),
+              const SizedBox(height: 64),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: _options.map((option) {
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.surfaceBright,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    ),
+                    onPressed: () => _checkAnswer(option),
+                    child: Text(option, style: const TextStyle(color: AppColors.textHigh)),
+                  ).animate().fade().slideY();
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );
