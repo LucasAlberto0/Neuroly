@@ -130,7 +130,7 @@ class _LinkedinCertificateModalState extends State<LinkedinCertificateModal> {
             children: [
               const CircleAvatar(
                 backgroundColor: AppColors.primary,
-                child: Text('L', style: TextStyle(color: Colors.white)),
+                backgroundImage: AssetImage('assets/images/profile_pic.jpg'),
               ),
               const SizedBox(width: 12),
               Column(

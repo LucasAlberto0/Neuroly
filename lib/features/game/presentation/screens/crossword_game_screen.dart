@@ -7,7 +7,7 @@ import '../../../../core/widgets/animated_score_badge.dart';
 class CrosswordCellData {
   final String expectedChar;
   String currentValue;
-  final int number; // 0 if no number
+  final int number;
   final bool isBlack;
 
   CrosswordCellData({

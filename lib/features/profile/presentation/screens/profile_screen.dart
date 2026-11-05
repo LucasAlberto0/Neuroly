@@ -93,11 +93,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     _buildTextField('Nome Completo', 'Lucas Alberto', LucideIcons.user),
-                    const Divider(color: AppColors.outline),
+                    const SizedBox(height: 8),
                     _buildTextField('E-mail', 'lucas@neuroly.com', LucideIcons.mail),
                   ],
                 ),
               ).animate().fade(delay: 300.ms).slideX(begin: -0.1),
+              
+              const SizedBox(height: 32),
+              
+              // Assinatura & Saldo
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Assinatura & Saldo',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  // Plano
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.secondary.withOpacity(0.2), AppColors.secondary.withOpacity(0.05)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.secondary.withOpacity(0.5)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(LucideIcons.zap, color: AppColors.secondary, size: 20),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('Neuroly Pro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                          const SizedBox(height: 4),
+                          const Text('Gerenciar plano', style: TextStyle(color: AppColors.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Coins
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.05)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(LucideIcons.coins, color: AppColors.primary, size: 20),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text('450 Neuro-créditos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                          const SizedBox(height: 4),
+                          const Text('Histórico', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ).animate().fade(delay: 350.ms).slideY(begin: 0.1),
               
               const SizedBox(height: 32),
               
@@ -150,18 +233,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String placeholder, IconData icon) {
+  Widget _buildTextField(String label, String initialValue, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: TextField(
+        controller: TextEditingController(text: initialValue),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: AppColors.textMedium),
-          hintText: placeholder,
           prefixIcon: Icon(icon, color: AppColors.primary),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
+          filled: true,
+          fillColor: AppColors.primary.withOpacity(0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
         ),
         style: const TextStyle(color: AppColors.textHigh),
       ),

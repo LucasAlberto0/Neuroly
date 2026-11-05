@@ -3,17 +3,35 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../stats/presentation/widgets/linkedin_certificate_modal.dart';
 
-class RankingScreen extends StatelessWidget {
+class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
+
+  @override
+  State<RankingScreen> createState() => _RankingScreenState();
+}
+
+class _RankingScreenState extends State<RankingScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const LinkedinCertificateModal(),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     // Mock data for the leaderboard
     final List<Map<String, dynamic>> rankingData = [
+      {'name': 'Você', 'score': 13500, 'avatar': 'assets/images/profile_pic.jpg', 'isMe': true},
       {'name': 'Lucas Silva', 'score': 12500},
       {'name': 'Mariana Costa', 'score': 11200},
-      {'name': 'Você', 'score': 10500, 'avatar': 'assets/images/profile_pic.jpg', 'isMe': true},
       {'name': 'Pedro Alves', 'score': 9800},
       {'name': 'Ana Paula', 'score': 9400},
       {'name': 'Carlos Eduardo', 'score': 8900},

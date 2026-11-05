@@ -24,7 +24,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     _chartController.addStatusListener((status) {
       if (status == AnimationStatus.completed && !_certificateShown) {
         _certificateShown = true;
-        _showCertificate();
+        // Modal transferido para a tela de Ranking
       }
     });
   }

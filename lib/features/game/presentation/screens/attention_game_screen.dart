@@ -122,7 +122,7 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
           child: Column(
             children: [
               Text(
-                'Toque APENAS quando a cor for VERDE',
+                'Toque APENAS quando a cor for AZUL',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
