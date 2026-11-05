@@ -1,10 +1,64 @@
 import 'package:flutter/material.dart';
+import '../../../../core/backend/models/backend_models.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController =
+      TextEditingController(text: 'lucas@neuroly.com');
+  final TextEditingController _passwordController =
+      TextEditingController(text: '123456');
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin({String? overrideEmail, String? overridePassword}) async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      await NeurolyApiClient().login(
+        email: overrideEmail ?? _emailController.text,
+        password: overridePassword ?? _passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } on BackendException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível conectar ao servidor local.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +93,8 @@ class LoginScreen extends StatelessWidget {
                       child: Image.asset(
                         'assets/images/logo_branco.png',
                         height: 48,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.white),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.error, color: Colors.white),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -56,7 +111,12 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: _isLoading
+                          ? null
+                          : () => _handleLogin(
+                                overrideEmail: 'lucas@neuroly.com',
+                                overridePassword: '123456',
+                              ),
                       icon: const Icon(LucideIcons.chrome, size: 20), // Using Chrome as a substitute for Google G
                       label: const Text('Continuar com Google'),
                       style: OutlinedButton.styleFrom(
@@ -77,20 +137,23 @@ class LoginScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const GlassContainer(
+                    GlassContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           TextField(
-                            decoration: InputDecoration(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
                               labelText: 'E-mail',
                               hintText: 'lucas@neuroly.com',
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
+                            controller: _passwordController,
                             obscureText: true,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Senha',
                               hintText: '••••••••',
                             ),
@@ -100,17 +163,24 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      },
-                      child: const Text('Entrar'),
+                      onPressed: _isLoading ? null : _handleLogin,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Entrar'),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.pushNamed(context, '/register');
                       },
-                      child: Text(
+                      child: const Text(
                         'Não possui acesso? Criar conta',
                         style: TextStyle(color: AppColors.textMedium),
                       ),

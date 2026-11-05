@@ -1,11 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/backend/models/backend_models.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      await NeurolyApiClient().register(
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } on BackendException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao criar conta. Tente novamente.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +95,8 @@ class RegisterScreen extends StatelessWidget {
                       child: Image.asset(
                         'assets/images/simbolo_branco.png',
                         height: 64,
-                        errorBuilder: (context, error, stackTrace) => const Icon(LucideIcons.brain, size: 64, color: AppColors.primaryDim),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(LucideIcons.brain, size: 64, color: AppColors.primaryDim),
                       ),
                     ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.easeOutBack),
                     const SizedBox(height: 24),
@@ -59,27 +115,30 @@ class RegisterScreen extends StatelessWidget {
                     GlassContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: const [
+                        children: [
                           TextField(
-                            decoration: InputDecoration(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
                               labelText: 'Nome Completo',
                               hintText: 'Digite seu nome',
                               prefixIcon: Icon(LucideIcons.user),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
-                            decoration: InputDecoration(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
                               labelText: 'E-mail',
                               hintText: 'exemplo@neuroly.com',
                               prefixIcon: Icon(LucideIcons.mail),
                             ),
                             keyboardType: TextInputType.emailAddress,
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
+                            controller: _passwordController,
                             obscureText: true,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Senha',
                               hintText: '••••••••',
                               prefixIcon: Icon(LucideIcons.lock),
@@ -90,11 +149,17 @@ class RegisterScreen extends StatelessWidget {
                     ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {
-                        // After registering, goes directly to home (or could go to login)
-                        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-                      },
-                      child: const Text('Cadastrar'),
+                      onPressed: _isLoading ? null : _handleRegister,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Cadastrar'),
                     ).animate().fade(delay: 600.ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1)),
                     const SizedBox(height: 16),
                     TextButton(
