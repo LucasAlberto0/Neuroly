@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/glass_container.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/widgets/animated_score_badge.dart';
@@ -26,11 +27,13 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   late List<IconData> _cards;
   late List<bool> _flipped;
   late List<bool> _matched;
-  
+
   int _score = 0;
   bool _isPlaying = false;
   int? _firstSelectedIndex;
   bool _isProcessing = false;
+  late DateTime _sessionStartTime;
+  bool _sessionSubmitted = false;
 
   @override
   void initState() {
@@ -47,6 +50,8 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     _firstSelectedIndex = null;
     _isPlaying = true;
     _isProcessing = false;
+    _sessionStartTime = DateTime.now();
+    _sessionSubmitted = false;
   }
 
   void _startGame() {
@@ -67,7 +72,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     } else {
       _isProcessing = true;
       int firstIndex = _firstSelectedIndex!;
-      
+
       if (_cards[firstIndex] == _cards[index]) {
         // Match!
         setState(() {
@@ -77,7 +82,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
           _firstSelectedIndex = null;
           _isProcessing = false;
         });
-        
+
         _checkWin();
       } else {
         // No match
@@ -95,89 +100,129 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     }
   }
 
+  void _submitSessionIfNeeded({bool force = false}) {
+    if (_sessionSubmitted) return;
+    if (!force && _score <= 0) return;
+
+    _sessionSubmitted = true;
+    final elapsed = DateTime.now().difference(_sessionStartTime).inSeconds;
+    NeurolyApiClient().submitGameSession(
+      moduleId: 'memory',
+      score: max(0, _score),
+      durationSeconds: max(5, elapsed),
+    );
+  }
+
   void _checkWin() {
     if (_matched.every((element) => element)) {
       setState(() {
         _isPlaying = false;
       });
+      _submitSessionIfNeeded(force: true);
     }
   }
 
   @override
+  void dispose() {
+    _submitSessionIfNeeded();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Memória'),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AnimatedScoreBadge(score: _score),
-            ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Text(
-                'Encontre os pares de símbolos',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _submitSessionIfNeeded();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Memória'),
+          actions: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: AnimatedScoreBadge(score: _score),
               ),
-              const SizedBox(height: 32),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  itemCount: _cards.length,
-                  itemBuilder: (context, index) {
-                    final isFlipped = _flipped[index] || _matched[index];
-                    
-                    return GestureDetector(
-                      onTap: () => _onCardTap(index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        decoration: BoxDecoration(
-                          color: _matched[index] 
-                              ? AppColors.secondary.withOpacity(0.2)
-                              : isFlipped ? AppColors.surfaceBright : AppColors.primaryDim,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _matched[index] ? AppColors.secondary : AppColors.outline,
-                            width: _matched[index] ? 2 : 1,
-                          ),
-                          boxShadow: _matched[index] 
-                              ? [BoxShadow(color: AppColors.secondary.withOpacity(0.5), blurRadius: 10)] 
-                              : [],
-                        ),
-                        child: Center(
-                          child: isFlipped
-                              ? Icon(_cards[index], color: _matched[index] ? AppColors.secondary : AppColors.primary, size: 32)
-                              : const Icon(LucideIcons.brain, color: AppColors.textMedium, size: 24),
-                        ),
-                      ).animate(target: _matched[index] ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 200.ms),
-                    ).animate().fade(delay: (30 * index).ms).slideY(begin: 0.1);
-                  },
+            )
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                Text(
+                  'Encontre os pares de símbolos',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-              ),
-              if (!_isPlaying)
-                Column(
-                  children: [
-                    Text('Você venceu!', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.secondary)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _startGame,
-                      child: const Text('JOGAR NOVAMENTE'),
+                const SizedBox(height: 32),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
                     ),
-                  ],
-                ).animate().fade().scale(curve: Curves.easeOutBack),
-            ],
+                    itemCount: _cards.length,
+                    itemBuilder: (context, index) {
+                      final isFlipped = _flipped[index] || _matched[index];
+
+                      return GestureDetector(
+                        onTap: () => _onCardTap(index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: _matched[index]
+                                ? AppColors.secondary.withOpacity(0.2)
+                                : isFlipped
+                                    ? AppColors.surfaceBright
+                                    : AppColors.primaryDim,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _matched[index] ? AppColors.secondary : AppColors.outline,
+                              width: _matched[index] ? 2 : 1,
+                            ),
+                            boxShadow: _matched[index]
+                                ? [BoxShadow(color: AppColors.secondary.withOpacity(0.5), blurRadius: 10)]
+                                : [],
+                          ),
+                          child: Center(
+                            child: isFlipped
+                                ? Icon(
+                                    _cards[index],
+                                    color: _matched[index] ? AppColors.secondary : AppColors.primary,
+                                    size: 32,
+                                  )
+                                : const Icon(LucideIcons.brain, color: AppColors.textMedium, size: 24),
+                          ),
+                        ).animate(target: _matched[index] ? 1 : 0).scale(
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.1, 1.1),
+                              duration: 200.ms,
+                            ),
+                      ).animate().fade(delay: (30 * index).ms).slideY(begin: 0.1);
+                    },
+                  ),
+                ),
+                if (!_isPlaying)
+                  Column(
+                    children: [
+                      Text(
+                        'Você venceu!',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: AppColors.secondary,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _startGame,
+                        child: const Text('JOGAR NOVAMENTE'),
+                      ),
+                    ],
+                  ).animate().fade().scale(curve: Curves.easeOutBack),
+              ],
+            ),
           ),
         ),
       ),

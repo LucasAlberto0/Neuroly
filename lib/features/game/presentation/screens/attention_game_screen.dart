@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -16,7 +17,7 @@ class AttentionGameScreen extends StatefulWidget {
 class _AttentionGameScreenState extends State<AttentionGameScreen> {
   final List<Color> _colors = [AppColors.primary, AppColors.secondary, AppColors.cyan, Colors.red];
   final Color _targetColor = AppColors.secondary;
-  
+
   Color _currentColor = AppColors.surfaceBright;
   bool _isPlaying = false;
   int _score = 0;
@@ -24,12 +25,16 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
   Timer? _colorTimer;
   int _timeLeft = 30;
   bool _isWrongTap = false;
+  DateTime? _sessionStartTime;
+  bool _sessionSubmitted = false;
 
   void _startGame() {
     setState(() {
       _score = 0;
       _timeLeft = 30;
       _isPlaying = true;
+      _sessionStartTime = DateTime.now();
+      _sessionSubmitted = false;
     });
 
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -45,7 +50,7 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
 
   void _nextColor() {
     if (!_isPlaying) return;
-    
+
     setState(() {
       _currentColor = _colors[Random().nextInt(_colors.length)];
     });
@@ -58,7 +63,7 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
 
   void _onTap() {
     if (!_isPlaying) return;
-    
+
     if (_currentColor == _targetColor) {
       setState(() {
         _score += 15;
@@ -77,6 +82,21 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
     }
   }
 
+  void _submitSessionIfNeeded({bool force = false}) {
+    if (_sessionSubmitted) return;
+    if (!force && _score <= 0) return;
+
+    _sessionSubmitted = true;
+    final elapsed = _sessionStartTime != null
+        ? DateTime.now().difference(_sessionStartTime!).inSeconds
+        : (30 - _timeLeft);
+    NeurolyApiClient().submitGameSession(
+      moduleId: 'attention',
+      score: max(0, _score),
+      durationSeconds: max(5, elapsed),
+    );
+  }
+
   void _endGame() {
     _gameTimer?.cancel();
     _colorTimer?.cancel();
@@ -84,84 +104,96 @@ class _AttentionGameScreenState extends State<AttentionGameScreen> {
       _isPlaying = false;
       _currentColor = AppColors.surfaceBright;
     });
+    _submitSessionIfNeeded(force: true);
   }
 
   @override
   void dispose() {
     _gameTimer?.cancel();
     _colorTimer?.cancel();
+    _submitSessionIfNeeded();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text('Atenção Concentrada'),
-        ),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                '$_timeLeft s',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: _timeLeft <= 5 ? Colors.red : AppColors.cyan,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Text(
-                'Toque APENAS quando a cor for AZUL',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 16),
-              AnimatedScoreBadge(score: _score),
-              const Spacer(),
-              Center(
-                child: GestureDetector(
-                  onTap: _onTap,
-                  child: GlassContainer(
-                    padding: const EdgeInsets.all(48),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentColor,
-                        boxShadow: [
-                          if (_currentColor != AppColors.surfaceBright)
-                            BoxShadow(
-                              color: _currentColor.withOpacity(0.5),
-                              blurRadius: 30,
-                              spreadRadius: 10,
-                            )
-                        ],
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _submitSessionIfNeeded();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Atenção Concentrada'),
+          ),
+          actions: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Text(
+                  '$_timeLeft s',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: _timeLeft <= 5 ? Colors.red : AppColors.cyan,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ).animate(target: _currentColor != AppColors.surfaceBright ? 1 : 0)
-                     .scale(duration: 200.ms, curve: Curves.easeOutBack),
-                  ),
-                ).animate(target: _isWrongTap ? 1 : 0).shake(hz: 8, curve: Curves.easeInOutCubic, duration: 300.ms),
-              ),
-              const Spacer(),
-              if (!_isPlaying)
-                ElevatedButton(
-                  onPressed: _startGame,
-                  child: const Text('INICIAR'),
                 ),
-            ],
+              ),
+            )
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                Text(
+                  'Toque APENAS quando a cor for AZUL',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 16),
+                AnimatedScoreBadge(score: _score),
+                const Spacer(),
+                Center(
+                  child: GestureDetector(
+                    onTap: _onTap,
+                    child: GlassContainer(
+                      padding: const EdgeInsets.all(48),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentColor,
+                          boxShadow: [
+                            if (_currentColor != AppColors.surfaceBright)
+                              BoxShadow(
+                                color: _currentColor.withOpacity(0.5),
+                                blurRadius: 30,
+                                spreadRadius: 10,
+                              )
+                          ],
+                        ),
+                      )
+                          .animate(target: _currentColor != AppColors.surfaceBright ? 1 : 0)
+                          .scale(duration: 200.ms, curve: Curves.easeOutBack),
+                    ),
+                  ).animate(target: _isWrongTap ? 1 : 0).shake(
+                        hz: 8,
+                        curve: Curves.easeInOutCubic,
+                        duration: 300.ms,
+                      ),
+                ),
+                const Spacer(),
+                if (!_isPlaying)
+                  ElevatedButton(
+                    onPressed: _startGame,
+                    child: const Text('INICIAR'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

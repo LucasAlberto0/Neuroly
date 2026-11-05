@@ -1,7 +1,8 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/neuroly_api_client.dart';
 import '../../../../core/theme/app_colors.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/widgets/animated_score_badge.dart';
 
 class WordPuzzleGameScreen extends StatefulWidget {
@@ -21,17 +22,20 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
     {'word': 'LOGICA', 'hint': 'Raciocínio coerente'},
   ];
   int _currentLevelIndex = 0;
-  
+
   String get _targetWord => _levels[_currentLevelIndex]['word']!;
   String get _hint => _levels[_currentLevelIndex]['hint']!;
   List<String> _scrambledLetters = [];
   List<String> _selectedLetters = [];
   int _score = 0;
   bool _isSuccess = false;
+  late DateTime _sessionStartTime;
+  bool _sessionSubmitted = false;
 
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     _startRound();
   }
 
@@ -39,6 +43,17 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
     _scrambledLetters = _targetWord.split('')..shuffle();
     _selectedLetters = [];
     _isSuccess = false;
+  }
+
+  void _submitSessionIfNeeded() {
+    if (_sessionSubmitted || _score <= 0) return;
+    _sessionSubmitted = true;
+    final elapsed = DateTime.now().difference(_sessionStartTime).inSeconds;
+    NeurolyApiClient().submitGameSession(
+      moduleId: 'word_puzzle',
+      score: max(0, _score),
+      durationSeconds: max(5, elapsed),
+    );
   }
 
   void _onLetterTap(String letter, int index) {
@@ -58,7 +73,7 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
           if (mounted) {
             setState(() {
               _currentLevelIndex = (_currentLevelIndex + 1) % _levels.length;
-              _startRound(); 
+              _startRound();
             });
           }
         });
@@ -76,7 +91,6 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
     if (_isSuccess) return;
     setState(() {
       _selectedLetters.removeAt(index);
-      // Find the first empty spot in scrambled to put it back
       int emptyIndex = _scrambledLetters.indexOf('');
       if (emptyIndex != -1) {
         _scrambledLetters[emptyIndex] = letter;
@@ -85,91 +99,118 @@ class _WordPuzzleGameScreenState extends State<WordPuzzleGameScreen> {
   }
 
   @override
+  void dispose() {
+    _submitSessionIfNeeded();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cruza-Letras'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AnimatedScoreBadge(score: _score),
-            ),
-          )
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            Text(
-              'Dica: $_hint',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.textMedium),
-              textAlign: TextAlign.center,
-            ).animate().fade().slideY(),
-            const SizedBox(height: 48),
-            // The empty boxes or selected letters
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: List.generate(_targetWord.length, (index) {
-                final hasLetter = index < _selectedLetters.length;
-                final letter = hasLetter ? _selectedLetters[index] : '';
-                return GestureDetector(
-                  onTap: hasLetter ? () => _onRemoveLetterTap(letter, index) : null,
-                  child: Container(
-                    width: 40,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: hasLetter ? (_isSuccess ? AppColors.secondary : AppColors.primary) : AppColors.surfaceBright,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: _isSuccess ? AppColors.secondary : AppColors.outline),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _submitSessionIfNeeded();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Cruza-Letras'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: AnimatedScoreBadge(score: _score),
+              ),
+            )
+          ],
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              Text(
+                'Dica: $_hint',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.textMedium,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      letter,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                ).animate(target: _isSuccess ? 1 : 0).scale(duration: 300.ms);
-              }),
-            ),
-            const Spacer(),
-            // The scrambled letters
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                textAlign: TextAlign.center,
+              ).animate().fade().slideY(),
+              const SizedBox(height: 48),
+              // The empty boxes or selected letters
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 alignment: WrapAlignment.center,
-                children: List.generate(_scrambledLetters.length, (index) {
-                  final letter = _scrambledLetters[index];
-                  if (letter.isEmpty) return const SizedBox(width: 48, height: 48); // placeholder
+                children: List.generate(_targetWord.length, (index) {
+                  final hasLetter = index < _selectedLetters.length;
+                  final letter = hasLetter ? _selectedLetters[index] : '';
                   return GestureDetector(
-                    onTap: () => _onLetterTap(letter, index),
+                    onTap: hasLetter ? () => _onRemoveLetterTap(letter, index) : null,
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: 40,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.outline),
+                        color: hasLetter
+                            ? (_isSuccess ? AppColors.secondary : AppColors.primary)
+                            : AppColors.surfaceBright,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _isSuccess ? AppColors.secondary : AppColors.outline,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         letter,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textHigh),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ).animate().scale(delay: (index * 50).ms);
+                  ).animate(target: _isSuccess ? 1 : 0).scale(duration: 300.ms);
                 }),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
+              const Spacer(),
+              // The scrambled letters
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: List.generate(_scrambledLetters.length, (index) {
+                    final letter = _scrambledLetters[index];
+                    if (letter.isEmpty) {
+                      return const SizedBox(width: 48, height: 48); // placeholder
+                    }
+                    return GestureDetector(
+                      onTap: () => _onLetterTap(letter, index),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.outline),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          letter,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textHigh,
+                          ),
+                        ),
+                      ),
+                    ).animate().scale(delay: (index * 50).ms);
+                  }),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
